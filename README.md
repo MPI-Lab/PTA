@@ -1,6 +1,5 @@
 # Partition-Then-Adapt: Combating Prediction Bias for Reliable Multi-Modal Test-Time Adaptation
-## NeurIPS-2025-spotlight
-This repository contains the official implementation of the proposed PTA.
+This repository contains the official implementation of the proposed PTA (NeurIPS-2025-spotlight).
 ## Overview
 PTA addresses the practical and challenging task of **Multi-Modal Test-Time Adaptation (MM-TTA)**, where multiple modalities experience simultaneous corruption during deployment.
 ## Framework
