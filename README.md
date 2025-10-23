@@ -113,6 +113,17 @@ We appreciate their important contributions to the open-source community.
 ## License
 This code is under CRAPL License.
 
+## Citation
+If you find this project useful in your research, please consider cite our work:
+```
+@inproceedings{wang2025PTA,
+  title={Partition-Then-Adapt: Combating Prediction Bias for Reliable Multi-Modal Test-Time Adaptation},
+  author={Guowei Wang and Fan Lyu and Changxing Ding},
+  booktitle={NeurIPS},
+  year={2025}
+}
+```
+
 ## References
 1. <a name="ref1">**Yang, Mouxing, Yunfan Li, Changqing Zhang, Peng Hu, and Xi Peng** (2024). *Test-time adaptation against multi-modal reliability bias*. Journal Name. ICLR.
    [[Open Review]](https://openreview.net/pdf?id=TPZRq4FALB)
