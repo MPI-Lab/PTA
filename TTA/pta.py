@@ -32,7 +32,7 @@ class PTA(nn.Module):
         for _ in range(self.steps):
             outputs, fea = self.forward_and_adapt(x)
         
-        return outputs, fea
+        return outputs
 
        
     @torch.enable_grad() 
@@ -41,11 +41,10 @@ class PTA(nn.Module):
         with autocast():
             # forward
             outputs, a, v, attn, fea = self.model.module.forward_eval(a=x[0], v=x[1], mode=self.args.testmode)
-
         entropys = softmax_entropy(outputs)
         pred = outputs.argmax(1)
 
-        conf_weights = entropys.softmax(dim=-1).max(dim=-1)[0]
+        conf_weights = outputs.softmax(dim=-1).max(dim=-1)[0]
 
         # calculate frequency 
         class_counts = torch.unique(pred, return_counts=True)
@@ -77,36 +76,24 @@ class PTA(nn.Module):
             # attn regularization all
             pos = attn[positive_indices]
             neg = attn[negative_indices]
-            attn[:,:,:512,:512] = attn[:,:,:512,:512]  # Audio-Audio
-            attn[:,:,512:,512:] = attn[:,:,512:,512:]  # Video-Video
-            attn[:,:,:512,512:] = attn[:,:,:512,512:]  # Audio-Video
-            attn[:,:,512:,:512] = attn[:,:,512:,:512]  # Video-Audio
-            # only aa
-            # pos_aa = attn[positive_indices,:,:512,:512]
-            # neg_aa = attn[negative_indices,:,:512,:512]
-            # # only vv
-            # pos_vv = attn[positive_indices,:,512:,512:]
-            # neg_vv = attn[negative_indices,:,512:,512:]
-            # # only av
-            # pos_av = attn[positive_indices,:,:512,512:]
-            # neg_av = attn[negative_indices,:,:512,512:]
-            # # only va
-            # pos_va = attn[positive_indices,:,512:,:512]
-            # neg_va = attn[negative_indices,:,512:,:512]
             
 
             # loss_attn = mmd_rbf_single_kernel(pos_aa, neg_aa) + mmd_rbf_single_kernel(pos_va, neg_va)
             loss_attn = mmd_rbf_single_kernel(pos,neg)
             loss_ent = (total_weights.detach() * entropys[positive_indices]).mean(0)
+            
+            loss_ent_neg = entropys[negative_indices].mean(0)
+            loss_ent = loss_ent - 0.5 * loss_ent_neg
           
-            loss_total = loss_ent + 0.5 * loss_ent + 1.0 * loss_attn 
-
-        try:
+            loss_total = loss_ent + 1.0 * loss_attn
+            # try:
             self.optimizer.zero_grad()
             self.scaler.scale(loss_total).backward()
             self.scaler.step(self.optimizer)
             self.scaler.update()
-        except RuntimeError:
+            # except RuntimeError:
+            #     return outputs, fea
+        else:
             return outputs, fea
     
         with torch.no_grad():
